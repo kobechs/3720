@@ -1,0 +1,324 @@
+<!DOCTYPE HTML>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>単語クイズ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            text-align: center;
+            padding: 20px;
+        }
+        #container {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 400px;
+            margin: auto;
+        }
+        #timer {
+            font-size: 24px;
+            color: #e74c3c;
+            margin-bottom: 20px;
+        }
+        #question {
+            font-size: 28px;
+            margin: 20px 0;
+        }
+        #answerForm {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            font-size: 18px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px;
+            font-size: 18px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #3498db;
+            color: white;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        #resultMessage {
+            margin-top: 20px;
+            font-size: 24px;
+        }
+        #resultImage {
+            margin-top: 10px;
+            width: 100px;
+        }
+        #dictionary {
+            margin-top: 20px;
+            display: none;
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+            text-align: left;
+        }
+        #closeDictionary {
+            margin-top: 10px;
+            background-color: #e74c3c;
+        }
+    </style>
+    <script>
+        let no = 0;
+        let score = 0;
+        let timer;
+        let timeLimit = 30; // タイムリミット設定
+
+        let wordList = [
+    { japanese: "電話", english: "phone" },
+    { japanese: "歴史", english: "history" },
+    { japanese: "社会", english: "society" },
+    { japanese: "世代", english: "generation" },
+    { japanese: "知識", english: "knowledge" },
+    { japanese: "岩", english: "rock" },
+    { japanese: "扉", english: "door" },
+    { japanese: "しかしながら", english: "however" },
+    { japanese: "失せろ！雑種！", english: "beat it! hybrid!" },
+    { japanese: "時代", english: "era" },
+    { japanese: "その代わり", english: "instead" },
+    { japanese: "裏切る", english: "betray" },
+    { japanese: "許可", english: "permission" },
+    { japanese: "もはや～でない", english: "no longer" },
+    { japanese: "～よりむしろ", english: "rather than" },
+    { japanese: "～で出来ている", english: "made of" },
+    { japanese: "旅", english: "journey" },
+    { japanese: "10年", english: "decade" },
+    { japanese: "選択", english: "choice" },
+    { japanese: "避ける", english: "avoid" },
+    { japanese: "ハッキング", english: "hacking" },
+    { japanese: "絶え間ない", english: "constant" },
+    { japanese: "練習する", english: "practice" },
+    { japanese: "預金する", english: "deposit" },
+    { japanese: "強く求める", english: "insist on" },
+    { japanese: "機会", english: "opportunity" },
+     { japanese: "努力", english: "effort" },
+    { japanese: "文化", english: "culture" },
+    { japanese: "目的", english: "purpose" },
+    { japanese: "社会", english: "society" },
+    { japanese: "意見", english: "opinion" },
+    { japanese: "経験", english: "experience" },
+    { japanese: "解決", english: "solution" },
+    { japanese: "問題", english: "problem" },
+    { japanese: "知識", english: "knowledge" },
+    { japanese: "選択", english: "choice" },
+    { japanese: "影響", english: "influence" },
+    { japanese: "状況", english: "situation" },
+    { japanese: "成功", english: "success" },
+    { japanese: "失敗", english: "failure" },
+    { japanese: "機会", english: "opportunity" },
+    { japanese: "環境", english: "environment" },
+    { japanese: "技術", english: "technology" },
+    { japanese: "進歩", english: "progress" },
+    { japanese: "価値", english: "value" },
+    { japanese: "資源", english: "resource" },
+    { japanese: "計画", english: "plan" },
+    { japanese: "活動", english: "activity" },
+    { japanese: "教育", english: "education" },
+    { japanese: "健康", english: "health" },
+    { japanese: "努力", english: "effort" },
+    { japanese: "未来", english: "future" },
+    { japanese: "問題解決", english: "problem-solving" },
+    { japanese: "責任", english: "responsibility" },
+    { japanese: "提案", english: "proposal" },
+    { japanese: "情報", english: "information" },
+    { japanese: "会話", english: "communication" },
+    { japanese: "協力", english: "cooperation" },
+    { japanese: "運営", english: "management" },
+    { japanese: "成長", english: "growth" },
+    { japanese: "成就", english: "achievement" },
+    { japanese: "信頼", english: "trust" },
+    { japanese: "挑戦", english: "challenge" },
+    { japanese: "報告", english: "report" },
+    { japanese: "選択肢", english: "option" },
+    { japanese: "範囲", english: "range" },
+    { japanese: "伝達", english: "communication" },
+    { japanese: "研究", english: "research" },
+    { japanese: "改善", english: "improvement" },
+    { japanese: "使用", english: "use" },
+    { japanese: "分析", english: "analysis" },
+    { japanese: "決定", english: "decision" },
+    { japanese: "会議", english: "meeting" },
+    { japanese: "目標", english: "goal" },
+    { japanese: "契約", english: "contract" },
+    { japanese: "発展", english: "development" },
+    { japanese: "設計", english: "design" },
+    { japanese: "調査", english: "survey" },
+    { japanese: "取引", english: "transaction" },
+    { japanese: "観察", english: "observation" },
+    { japanese: "目的地", english: "destination" },
+    { japanese: "資産", english: "asset" },
+    { japanese: "技術者", english: "engineer" },
+    { japanese: "支援", english: "support" },
+    { japanese: "開始", english: "start" },
+    { japanese: "結果", english: "result" },
+    { japanese: "設立", english: "establishment" },
+    { japanese: "特色", english: "feature" },
+    { japanese: "価格", english: "price" },
+    { japanese: "相手", english: "partner" },
+    { japanese: "意識", english: "awareness" },
+    { japanese: "移動", english: "movement" },
+    { japanese: "努力家", english: "hard worker" },
+    { japanese: "安全", english: "safety" },
+    { japanese: "景気", english: "economy" },
+    { japanese: "利点", english: "advantage" },
+    { japanese: "接触", english: "contact" },
+    { japanese: "内容", english: "content" },
+    { japanese: "信号", english: "signal" },
+    { japanese: "目撃", english: "witness" },
+    { japanese: "概念", english: "concept" },
+    { japanese: "品質", english: "quality" },
+    { japanese: "制度", english: "system" },
+    { japanese: "課題", english: "issue" },
+    { japanese: "改善点", english: "point of improvement" },
+    { japanese: "過程", english: "process" },
+    { japanese: "進展", english: "advancement" },
+    { japanese: "過去", english: "past" },
+    { japanese: "現実", english: "reality" },
+    { japanese: "方向", english: "direction" },
+    { japanese: "規模", english: "scale" },
+    { japanese: "報酬", english: "reward" },
+    { japanese: "地域", english: "region" },
+    { japanese: "責務", english: "duty" },
+    { japanese: "結論", english: "conclusion" },
+    { japanese: "文化財", english: "cultural asset" },
+    { japanese: "参加", english: "participation" },
+    { japanese: "将来", english: "prospect" },
+    { japanese: "意見交換", english: "exchange of opinions" },
+    { japanese: "選択肢", english: "choices" },
+    { japanese: "貢献", english: "contribution" },
+    { japanese: "先進", english: "advanced" },
+    { japanese: "方法論", english: "methodology" },
+    { japanese: "効率", english: "efficiency" },
+    { japanese: "予測", english: "prediction" },
+    { japanese: "利害", english: "interest" },
+    { japanese: "特徴", english: "characteristic" },
+    { japanese: "価値観", english: "values" },
+    { japanese: "意見", english: "viewpoint" },
+        ];
+
+        function startTimer() {
+            let timeLeft = timeLimit;
+            document.getElementById("timer").innerHTML = timeLeft;
+
+            timer = setInterval(function() {
+                timeLeft--;
+                document.getElementById("timer").innerHTML = timeLeft;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    alert("時間切れ！次の問題に進みます。");
+                    no++;
+                    showQuestion();
+                }
+            }, 1000);
+        }
+
+        function showQuestion() {
+            clearInterval(timer);
+            startTimer();
+
+            if (no < wordList.length) {
+                document.getElementById("question").innerHTML = wordList[no].japanese;
+                document.getElementById("progress").innerHTML = (no + 1) + "/" + wordList.length;
+                document.getElementById("dictionary").style.display = "none"; // 辞書を非表示
+            } else {
+                document.getElementById("question").innerHTML = score + "/" + wordList.length;
+                document.getElementById("answerForm").style.display = "none";
+                clearInterval(timer);
+                showResult();
+            }
+        }
+
+        function showResult() {
+            if (score === wordList.length) {
+                document.getElementById("resultMessage").innerHTML = "全問正解！よくできました！";
+                document.getElementById("resultImage").src = "gold.png";
+            } else if (score >= wordList.length * 0.6) {
+                document.getElementById("resultMessage").innerHTML = "惜しい！あともう一歩でした！";
+                document.getElementById("resultImage").src = "silver.png";
+            } else {
+                document.getElementById("resultMessage").innerHTML = "もう少しがんばりましょう。";
+                document.getElementById("resultImage").src = "bronze.png";
+            }
+        }
+
+        function judge() {
+            let answer = document.getElementById("answer").value;
+            if (answer.toLowerCase() === wordList[no].english.toLowerCase()) {
+                alert("正解！");
+                score++;
+            } else {
+                alert("勉強し直してください。\n正解は: " + wordList[no].english);
+            }
+
+            no++;
+            showQuestion();
+            document.getElementById("answer").value = "";
+        }
+
+        function requestHint() {
+            alert("ヒント: " + wordList[no].english.charAt(0) + "から始まります。");
+        }
+
+        function showDictionary() {
+            clearInterval(timer); // タイマーを停止
+            let dictionaryContent = "<h3>辞書:</h3>";
+            wordList.forEach(word => {
+                dictionaryContent += `<p><strong>${word.japanese}</strong>: ${word.english}</p>`;
+            });
+            document.getElementById("dictionary").innerHTML = dictionaryContent;
+            document.getElementById("dictionary").style.display = "block"; // 辞書を表示
+        }
+
+        function closeDictionary() {
+            document.getElementById("dictionary").style.display = "none"; // 辞書を非表示
+            startTimer(); // タイマーを再開
+        }
+
+        window.onload = function() {
+            document.getElementById("answer").addEventListener("keypress", function(event) {
+                if (event.key === "Enter") {
+                    judge();
+                }
+            });
+            showQuestion();
+        };
+    </script>
+</head>
+<body>
+    <div id="container">
+        <h1>単語クイズ</h1>
+        <div id="progress"></div>
+        <div id="timer"></div>
+        <div id="question"></div>
+        <div id="answerForm">
+            <input type="text" id="answer" placeholder="英単語を入力">
+            <button onclick="judge()">OK</button>
+            <button onclick="requestHint()">ヒント</button>
+            <button onclick="showDictionary()">辞書</button>
+        </div>
+        <div id="dictionary">
+            <button id="closeDictionary" onclick="closeDictionary()">閉じる</button>
+        </div>
+        <p id="resultMessage"></p>
+        <img id="resultImage" src="">
+    </div>
+</body>
+</html>
